@@ -6,6 +6,7 @@
 #include "base/statsfunction.hpp"
 #include "base/application.hpp"
 #include <fstream>
+#include <iostream>
 
 using namespace icinga;
 
@@ -48,8 +49,10 @@ void FileLogger::ReopenLogFile()
 	try {
 		stream->open(path.CStr(), std::fstream::app | std::fstream::out);
 
-		if (!stream->good())
+		if (!stream->good()) {
+			std::cerr << "Could not open logfile '" << path << "'" << std::endl;
 			BOOST_THROW_EXCEPTION(std::runtime_error("Could not open logfile '" + path + "'"));
+		}
 	} catch (...) {
 		delete stream;
 		throw;
