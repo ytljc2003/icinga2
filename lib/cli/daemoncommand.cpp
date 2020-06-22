@@ -413,6 +413,7 @@ static void WorkerSignalHandler(int num, siginfo_t *info, void*)
 			if (info->si_pid == 0 || info->si_pid == l_UmbrellaPid) {
 				// The umbrella process requested our termination
 				Application::RequestShutdown();
+				(void)signal(num, SIG_DFL);
 			}
 			break;
 		default:
