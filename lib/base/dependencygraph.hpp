@@ -25,7 +25,7 @@ public:
 private:
 	DependencyGraph();
 
-	static boost::mutex m_Mutex;
+	static std::mutex m_Mutex;
 	static std::map<Object *, std::map<Object *, int> > m_Dependencies;
 };
 

@@ -118,7 +118,7 @@ private:
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 
-	mutable boost::mutex m_StatsMutex;
+	mutable std::mutex m_StatsMutex;
 	RingBuffer m_QueryStats{15 * 60};
 	bool m_ActiveChangedHandler{false};
 

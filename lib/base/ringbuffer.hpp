@@ -31,7 +31,7 @@ public:
 	double CalculateRate(SizeType tv, SizeType span);
 
 private:
-	mutable boost::mutex m_Mutex;
+	mutable std::mutex m_Mutex;
 	std::vector<int> m_Slots;
 	SizeType m_TimeValue;
 	SizeType m_InsertedValues;

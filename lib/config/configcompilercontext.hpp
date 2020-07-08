@@ -29,7 +29,7 @@ private:
 	String m_ObjectsTempFile;
 	std::fstream *m_ObjectsFP{nullptr};
 
-	mutable boost::mutex m_Mutex;
+	mutable std::mutex m_Mutex;
 };
 
 }
