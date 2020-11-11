@@ -15,6 +15,8 @@ using namespace icinga;
 REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
+std::map<String, int> Checkable::m_FlappingStateFilterMap;
+
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
 boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnFlappingChange;
@@ -29,11 +31,25 @@ void Checkable::StaticInitialize()
 	Downtime::OnDowntimeTriggered.connect(std::bind(&Checkable::NotifyFlexibleDowntimeStart, _1));
 	/* fixed/flexible downtime end */
 	Downtime::OnDowntimeRemoved.connect(std::bind(&Checkable::NotifyDowntimeEnd, _1));
+
+	m_FlappingStateFilterMap["OK"] = FlappingStateFilterOk;
+	m_FlappingStateFilterMap["Warning"] = FlappingStateFilterWarning;
+	m_FlappingStateFilterMap["Critical"] = FlappingStateFilterCritical;
+	m_FlappingStateFilterMap["Unknown"] = FlappingStateFilterUnknown;
+	m_FlappingStateFilterMap["Up"] = FlappingStateFilterOk;
+	m_FlappingStateFilterMap["Down"] = FlappingStateFilterCritical;
 }
 
 Checkable::Checkable()
 {
 	SetSchedulingOffset(Utility::Random());
+}
+
+void Checkable::OnConfigLoaded()
+{
+	ObjectImpl<Checkable>::OnConfigLoaded();
+
+	SetFlappingIgnoreStatesFilter(FilterArrayToInt(GetFlappingIgnoreStates(), m_FlappingStateFilterMap, ~0));
 }
 
 void Checkable::OnAllConfigLoaded()
