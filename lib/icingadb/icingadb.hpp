@@ -34,6 +34,12 @@ public:
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
+protected:
+	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
+	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
+
+	void OnAllConfigLoaded() override;
+
 private:
 	void ReconnectTimerHandler();
 	void TryToReconnect();

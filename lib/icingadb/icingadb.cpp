@@ -63,7 +63,6 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_ConfigDumpInProgress = false;
 	m_ConfigDumpDone = false;
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex());
 	m_Rcon->Start();
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
@@ -157,6 +156,37 @@ void IcingaDB::Stop(bool runtimeRemoved)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<IcingaDB>::Stop(runtimeRemoved);
+}
+
+void IcingaDB::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::ValidateTlsProtocolmin(lvalue, utils);
+
+	if (lvalue() != SSL_TXT_TLSV1_2) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, "Invalid TLS version. Must be '" SSL_TXT_TLSV1_2 "'"));
+	}
+}
+
+void IcingaDB::ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<IcingaDB>::ValidateTlsHandshakeTimeout(lvalue, utils);
+
+	if (lvalue() <= 0) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_handshake_timeout" }, "Value must be greater than 0."));
+	}
+}
+
+void IcingaDB::OnAllConfigLoaded()
+{
+	ObjectImpl<IcingaDB>::OnAllConfigLoaded();
+
+	if (GetUseTls() && GetCertPath().IsEmpty() != GetKeyPath().IsEmpty()) {
+		BOOST_THROW_EXCEPTION(ScriptError("IcingaDB '" + GetName() + "' must specify either both a client certificate (cert_path) and its private key (key_path) or none of them.", GetDebugInfo()));
+	}
+
+	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+		GetUseTls(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
+		GetTlsProtocolmin(), GetCipherList(), GetTlsHandshakeTimeout());
 }
 
 void IcingaDB::AssertOnWorkQueue()
