@@ -39,7 +39,7 @@ inline std::function<Value (const std::vector<Value>&)> WrapFunction(void (*func
 template<typename Return>
 std::function<Value (const std::vector<Value>&)> WrapFunction(Return (*function)(const std::vector<Value>&))
 {
-	return std::bind(function, _1);
+	return [&function](const std::vector<Value>& wrappers){ return function(wrappers); };
 }
 
 template <std::size_t... Indices>
