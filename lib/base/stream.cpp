@@ -83,7 +83,7 @@ void Stream::Close()
 
 	/* Force signals2 to remove the slots, see https://stackoverflow.com/questions/2049291/force-deletion-of-slot-in-boostsignals2
 	 * for details. */
-	OnDataAvailable.connect(std::bind(&StreamDummyCallback));
+	OnDataAvailable.connect([](const Stream::Ptr&){ StreamDummyCallback(); });
 }
 
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)
