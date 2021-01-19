@@ -57,8 +57,7 @@ std::vector<String> ConfigPackageUtility::GetPackages()
 	if (!Utility::PathExists(packageDir))
 		return packages;
 
-	Utility::Glob(packageDir + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
-		_1, std::ref(packages)), GlobDirectory);
+	Utility::Glob(packageDir + "/*", [&packages](const String& path){ CollectDirNames(path, packages); }, GlobDirectory);
 
 	return packages;
 }
@@ -228,7 +227,7 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
-	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, activate, reload));
+	process->Run([packageName, stageName, activate, reload](const ProcessResult& pr){ TryActivateStageCallback(pr, packageName, stageName, activate, reload); });
 }
 
 void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)
@@ -247,7 +246,7 @@ void ConfigPackageUtility::DeleteStage(const String& packageName, const String& 
 std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 {
 	std::vector<String> stages;
-	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, std::ref(stages)), GlobDirectory);
+	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", [&stages](const String& path){ CollectDirNames(path, stages); }, GlobDirectory);
 	return stages;
 }
 
@@ -328,7 +327,9 @@ void ConfigPackageUtility::SetActiveStage(const String& packageName, const Strin
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
 	std::vector<std::pair<String, bool> > paths;
-	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, std::ref(paths)), GlobDirectory | GlobFile);
+	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", [&paths](const String& path) {
+		CollectPaths(path, paths);
+	}, GlobDirectory | GlobFile);
 
 	return paths;
 }
